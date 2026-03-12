@@ -1,0 +1,27 @@
+# Ambientes virtuais
+venv/
+airflow_venv/
+env/
+
+# Arquivos de credenciais
+*.json
+profiles.yml
+**/profiles.yml
+
+# Arquivos temporários e caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dados locais (se não quiser versionar os CSVs)
+data/processed/
+data/raw/
+*.csv
+*.json
+
+# Pastas do sistema
+.DS_Store
+Thumbs.db

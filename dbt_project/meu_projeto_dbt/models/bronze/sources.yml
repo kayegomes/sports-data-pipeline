@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: raw
+    database: project-ac917c6a-54c0-486f-937
+    schema: raw
+    tables:
+      - name: matches
+        description: "Dados brutos de partidas"
+        columns:
+          - name: id
+          - name: date
+          - name: home_team
+          - name: away_team
+          - name: home_score
+          - name: away_score
+          - name: _ingested_at

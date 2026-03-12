@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dim_teams
+    columns:
+      - name: team_id
+        tests:
+          - unique
+          - not_null
+      - name: team_name
+        tests:
+          - unique
+          - not_null
+  - name: fact_matches
+    columns:
+      - name: home_team_id
+        tests:
+          - relationships:
+              to: ref('dim_teams')
+              field: team_id
+      - name: away_team_id
+        tests:
+          - relationships:
+              to: ref('dim_teams')
+              field: team_id
+  - name: league_table
+    columns:
+      - name: team
+        tests:
+          - not_null
+      - name: points
+        tests:
+          - not_null
+  - name: team_stats
+    columns:
+      - name: team
+        tests:
+          - unique
+          - not_null

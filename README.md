@@ -1,248 +1,194 @@
-# Sports Data Pipeline ⚽
+# ⚽ Sports Data Pipeline — Engenharia de Dados Moderna
 
-End-to-end data pipeline that extracts football match data from an external API, processes it and generates analytical datasets ready for data warehouse consumption.
-
-This project demonstrates core concepts used in modern **data engineering workflows**, including ETL pipelines, dimensional data modeling, data quality validation, containerization and CI/CD automation.
-
----
-
-# Data Pipeline Architecture
-
-```mermaid
-flowchart TD
-
-A[Football Data API] --> B[Extract - Python Requests]
-B --> C[Raw JSON Dataset]
-
-C --> D[Transform - Pandas]
-D --> E[Data Quality Checks]
-
-E --> F[Dimensional Modeling]
-
-F --> G[dim_teams]
-F --> H[fact_matches]
-
-G --> I[Analytics Ready Dataset]
-H --> I
-
-I --> J[Future: Data Warehouse / Dashboard]
-```
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
+[![dbt](https://img.shields.io/badge/dbt-1.8-orange)](https://getdbt.com)
+[![BigQuery](https://img.shields.io/badge/BigQuery-Data%20Warehouse-blue)](https://cloud.google.com/bigquery)
+[![Looker Studio](https://img.shields.io/badge/Looker-Studio-4285F4)](https://lookerstudio.google.com)
+[![Airflow](https://img.shields.io/badge/Airflow-Orchestration-green)](https://airflow.apache.org) *(em breve)*
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-# Pipeline Flow
+## 📌 **Sobre o Projeto**
 
-Football API  
-↓  
-Extract (Python)  
-↓  
-Raw Data (JSON)  
-↓  
-Transform (Pandas)  
-↓  
-Data Quality Validation  
-↓  
-Dimensional Data Modeling  
-↓  
-Analytics Ready Tables  
+Este repositório contém um **pipeline de dados end‑to‑end** que extrai informações de partidas de futebol de uma API pública, processa‑as seguindo a **arquitetura Medallion (Bronze, Silver, Gold)** e disponibiliza os dados para consumo analítico em ferramentas de BI.
+
+O projeto foi desenvolvido para demonstrar habilidades práticas em **Engenharia de Dados**, incluindo:
+
+- Coleta e ingestão de dados (Python + requests)
+- Modelagem dimensional e transformação com **dbt** + **BigQuery**
+- Criação de dashboards interativos com **Looker Studio**
+- Versionamento de código e CI/CD com **GitHub Actions**
+- (Em andamento) Orquestração com **Apache Airflow**
 
 ---
 
-# Project Structure
+## 🏗️ **Arquitetura do Pipeline**
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ EXTRACT │ ──▶ │ BRONZE │ ──▶ │ SILVER │ ──▶ │ GOLD │
+│ (API / CSV) │ │ (raw.matches) │ │ (stg_matches) │ │ (dim / fact) │
+└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+│ │ │
+▼ ▼ ▼
+Dados brutos Limpeza e tipagem Modelos de negócio
+(ingestão) (padronização) (dimensões, fatos,
+agregações)
 
-```
-sports-data-pipeline
-│
-├── data
-│   ├── raw
-│   ├── processed
-│   └── metadata
-│
-├── pipelines
-│   ├── run_pipeline.py
-│   └── scheduler.py
-│
-├── src
-│   ├── extract
-│   │   └── extract_matches.py
-│   │
-│   ├── transform
-│   │   ├── transform_matches.py
-│   │   ├── dim_teams.py
-│   │   └── fact_matches.py
-│   │
-│   ├── quality
-│   │   └── data_checks.py
-│   │
-│   └── utils
-│       └── incremental.py
-│
-├── Dockerfile
+- **Camada Bronze** – Tabela `raw.matches` no BigQuery (dados exatamente como ingeridos).
+- **Camada Silver** – Views no dbt que limpam, renomeiam e tipam os dados (`stg_matches`).
+- **Camada Gold** – Tabelas físicas (dimensões, fatos e agregações) otimizadas para consumo analítico:
+  - `dim_teams` (dimensão de times)
+  - `fact_matches` (fato de partidas com chaves estrangeiras)
+  - `league_table` (classificação do campeonato)
+  - `team_stats` (estatísticas detalhadas por time)
+
+---
+
+## 🛠️ **Tecnologias & Ferramentas**
+
+| Categoria              | Tecnologias                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| **Linguagem**          | Python 3.10+ (pandas, requests)                                            |
+| **Data Warehouse**     | Google BigQuery                                                             |
+| **Transformação**      | dbt Core (dbt-bigquery)                                                     |
+| **Orquestração**       | Apache Airflow *(em implementação)*                                         |
+| **Visualização**       | Google Looker Studio (ex‑Data Studio)                                       |
+| **CI/CD**              | GitHub Actions                                                              |
+| **Contêineres**        | Docker                                                                      |
+| **Controle de Versão** | Git                                                                         |
+
+---
+
+## 📂 **Estrutura do Repositório**
+├── .github/workflows/ # CI/CD: testes automáticos e build Docker
+├── data/ # Dados brutos e processados (ignorados pelo Git)
+├── pipelines/ # Scripts legados de execução (ETL)
+├── sql/ # Consultas auxiliares
+├── src/
+│ ├── extract/ # Extração de dados da API
+│ ├── load/ # Carga inicial para o BigQuery
+│ ├── quality/ # Validações de qualidade (pandas)
+│ └── utils/ # Funções auxiliares
+├── dbt_project/ # Projeto dbt com arquitetura Medallion
+│ └── meu_projeto_dbt/
+│ ├── models/
+│ │ ├── bronze/ # Fonte raw (sources.yml)
+│ │ ├── silver/ # Modelos de staging (stg_matches)
+│ │ └── gold/ # Dimensões, fatos e métricas
+│ ├── dbt_project.yml
+│ └── ...
+├── .gitignore
+├── README.md # Você está aqui!
 ├── requirements.txt
-└── README.md
-```
+└── dockerfile
 
 ---
 
-# Features
+## 🔄 **Fluxo de Trabalho**
 
-## Data Extraction
+### 1️⃣ **Extração e Carga (EL)**
+- O script `src/load/load_raw.py` lê o arquivo `data/processed/matches_clean.csv` e o carrega na tabela `raw.matches` do BigQuery.
+- Futuramente, a extração será feita diretamente de uma API e orquestrada pelo Airflow.
 
-The pipeline retrieves football match data from an external API using Python requests.
+### 2️⃣ **Transformação com dbt (T)**
+- O dbt executa os modelos SQL na ordem correta (respeitando as dependências via `ref`).
+- Os modelos são materializados conforme a camada:
+  - **Bronze / Silver** → views (leves e sempre atualizadas)
+  - **Gold** → tabelas (físicas, particionáveis e otimizadas para consultas)
 
-Example output:
+### 3️⃣ **Testes e Documentação**
+- Testes de qualidade (not null, unique, relationships) são definidos em arquivos `schema.yml`.
+- A documentação é gerada automaticamente com `dbt docs generate`.
 
-```
-raw_matches.json
-```
-
----
-
-## Data Transformation
-
-Data is cleaned and structured using **Pandas**, generating a tabular dataset suitable for analytics.
-
-Example output:
-
-```
-matches_clean.csv
-```
+### 4️⃣ **Visualização**
+- O Looker Studio conecta‑se diretamente às tabelas `gold` para criar dashboards interativos.
+- Exemplo: [link para o dashboard](#) *(a ser inserido)*
 
 ---
 
-## Data Quality Checks
+## 🚀 **Como Executar Localmente**
 
-Before generating analytical tables, the pipeline performs validation checks such as:
+### Pré‑requisitos
+- Python 3.10+ e Git
+- Conta no Google Cloud com BigQuery ativado
+- Google Cloud SDK instalado e autenticado (`gcloud auth application-default login`)
+- dbt Core (`pip install dbt-bigquery`)
 
-- dataset not empty
-- null value detection
-- score validation
-- match status verification
+### Passo a passo
 
-These checks simulate real production data pipelines.
+```bash
+# Clone o repositório
+git clone https://github.com/kayegomes/sports-data-pipeline.git
+cd sports-data-pipeline
 
----
+# Crie e ative um ambiente virtual
+python -m venv venv
+source venv/bin/activate        # Linux/Mac
+.\venv\Scripts\activate          # Windows
 
-## Dimensional Data Modeling
-
-The project implements a simplified **star schema** model.
-
-Two analytical tables are generated:
-
-### dim_teams
-
-| team_id | team_name |
-|------|------|
-| 1 | Liverpool FC |
-| 2 | Arsenal FC |
-
----
-
-### fact_matches
-
-| date | matchday | home_team_id | away_team_id | home_score | away_score |
-|------|------|------|------|------|------|
-
-This structure allows efficient analytics queries.
-
----
-
-# Technologies Used
-
-Python ecosystem:
-
-- Python
-- Pandas
-- Requests
-
-Data Engineering tools:
-
-- Docker
-- CI/CD
-- GitHub Actions
-
-Concepts implemented:
-
-- ETL pipeline
-- Data quality checks
-- Dimensional modeling
-- Containerization
-- Continuous Integration
-
----
-
-# Running the Pipeline
-
-Install dependencies:
-
-```
+# Instale as dependências
 pip install -r requirements.txt
-```
 
-Run the pipeline:
+# Configure o perfil do dbt (em ~/.dbt/profiles.yml) com seus dados
+# Exemplo:
+# meu_projeto_dbt:
+#   target: dev
+#   outputs:
+#     dev:
+#       type: bigquery
+#       method: oauth
+#       project: seu-projeto-id
+#       dataset: dbt_dev
+#       threads: 4
+#       location: southamerica-east1
 
-```
-python pipelines/run_pipeline.py
-```
+# Carregue os dados brutos para o BigQuery
+python src/load/load_raw.py
 
-Expected output:
+# Execute as transformações com dbt
+cd dbt_project/meu_projeto_dbt
+dbt run
+dbt test              # (opcional)
 
-```
-Iniciando pipeline
+📊 Dashboard Interativo
+O Looker Studio consome as tabelas gold e apresenta:
 
-Dados extraídos com sucesso
-Transformação concluída
-Data quality checks passaram
-dim_teams criada
-fact_matches criada
+Tabela de classificação (pontos, vitórias, derrotas, saldo de gols)
 
-Pipeline finalizado
-```
+Gráfico comparativo de gols pró e sofridos por time
 
----
+Scorecards com totais do campeonato
 
-# Running with Docker
+Filtros interativos por time
 
-Build container:
+🔗 Acesse o dashboard aqui (coloque o link real)
 
-```
-docker build -t sports-data-pipeline .
-```
+🧠 Habilidades Demonstradas
+Modelagem de dados dimensional (star schema) e arquitetura Medallion
 
-Run pipeline inside container:
+ELT moderno com dbt + BigQuery
 
-```
-docker run sports-data-pipeline
-```
+Automação de testes de qualidade no pipeline
 
----
+Versionamento de código e boas práticas de Git
 
-# Continuous Integration
+CI/CD com GitHub Actions (validação e build)
 
-The project includes automated CI/CD using GitHub Actions.
+Containerização com Docker
 
-Every push to the repository automatically:
+Orquestração de pipelines (Airflow em breve)
 
-1. installs dependencies  
-2. runs the pipeline  
-3. validates the project structure  
-4. builds the Docker container  
+Visualização de dados para stakeholders de negócio
 
-This simulates a real production deployment pipeline.
+🎯 Próximos Passos
+Integrar orquestração com Apache Airflow (agendamento, tratamento de falhas)
 
----
+Substituir a carga manual por extração automatizada da API
 
-# Future Improvements
+Adicionar testes unitários e de integração
 
-Possible extensions for the project:
+Implementar partições e clustering nas tabelas gold para performance
 
-- incremental data ingestion
-- integration with a cloud data warehouse
-- orchestration with Airflow
-- dashboard visualization
-- automated unit tests
-
----
 
 # Author
 

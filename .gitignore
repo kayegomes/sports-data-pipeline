@@ -1,0 +1,33 @@
+# Ambientes virtuais
+venv/
+airflow_venv/
+env/
+
+# Arquivos de credenciais
+*.json
+profiles.yml
+**/profiles.yml
+
+# Arquivos temporários e caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dados locais (se não quiser versionar os CSVs)
+data/processed/
+data/raw/
+*.csv
+*.json
+
+# Pastas do sistema
+.DS_Store
+Thumbs.db
+
+# dbt: pastas geradas em tempo de execução
+dbt_project/**/target/
+dbt_project/**/logs/
+dbt_project/**/dbt_packages/
+dbt_project/**/dbt_modules/
